@@ -1,0 +1,144 @@
+<html>
+
+<body>
+
+    <a href="#" onclick="checkStatus()">TEST</a>
+
+
+<script>
+var OERF_JSON = "http://www.oref.org.il/WarningMessages/alerts.json";
+var tmr = require('sdk/timers');
+//tmr.setInterval(checkStatus, 2000);
+checkStatus();
+
+function checkStatus() {
+    //const {XMLHttpRequest} = require("sdk/net/xhr");
+
+/*    
+    var request = new XMLHttpRequest();
+    request.open("GET", OERF_JSON, true);
+    request.onload = function () {
+        var non_borked_json = request.responseText.substring(2, request.responseText.length-2);
+        non_borked_json = Utf8.encode(request.responseText);
+        console.log("\nFixed [%%]\n".replace("%%", non_borked_json));
+        console.log("-------------\n");
+        var jsonResponse = JSON.parse(non_borked_json);
+
+        showRedColor(non_borked_json.title, non_borked_json.data);
+    };
+    request.send();
+    */
+
+    var xhr = createCORSRequest("GET", OERF_JSON);
+    xhr.onload = function() {
+        var responseText = xhr.responseText;
+        console.log(responseText);
+        // process the response.
+    };
+    xhr.onerror = function() {
+        alert('Woops, there was an error making the request.');
+    };
+    xhr.send();
+}
+
+
+function showRedColor(theTitle, where) {
+	var notifications = require("sdk/notifications");
+	notifications.notify({
+	  title: theTitle,
+	  text: where,
+	  onClick: function () {
+	    //console.log(data);
+	    // console.log(this.data) would produce the same result.
+	  }
+	});
+}
+
+
+function createCORSRequest(method, url) {
+  var xhr = new XMLHttpRequest();
+  if ("withCredentials" in xhr) {
+
+    // Check if the XMLHttpRequest object has a "withCredentials" property.
+    // "withCredentials" only exists on XMLHTTPRequest2 objects.
+    xhr.open(method, url, true);
+
+  } else if (typeof XDomainRequest != "undefined") {
+
+    // Otherwise, check if XDomainRequest.
+    // XDomainRequest only exists in IE, and is IE's way of making CORS requests.
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+
+  } else {
+
+    // Otherwise, CORS is not supported by the browser.
+    xhr = null;
+
+  }
+  return xhr;
+}
+
+
+// http://ecmanaut.blogspot.co.il/2006/07/encoding-decoding-utf8-in-javascript.html
+function encode_utf8(s) {
+  return unescape(encodeURIComponent(s));
+}
+
+function decode_utf8(s) {
+  return decodeURIComponent(escape(s));
+}
+
+//http://www.webtoolkit.info/javascript-utf8.html
+var Utf8 = {
+    // public method for url encoding
+    encode : function (string) {
+        string = string.replace(/\r\n/g,"\n");
+        var utftext = "";
+        for (var n = 0; n < string.length; n++) {
+            var c = string.charCodeAt(n);
+            if (c < 128) {
+                utftext += String.fromCharCode(c);
+            }
+            else if((c > 127) && (c < 2048)) {
+                utftext += String.fromCharCode((c >> 6) | 192);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+            else {
+                utftext += String.fromCharCode((c >> 12) | 224);
+                utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+                utftext += String.fromCharCode((c & 63) | 128);
+            }
+        }
+        return utftext;
+    },
+    // public method for url decoding
+    decode : function (utftext) {
+        var string = "";
+        var i = 0;
+        var c = c1 = c2 = 0;
+        while ( i < utftext.length ) {
+            c = utftext.charCodeAt(i);
+            if (c < 128) {
+                string += String.fromCharCode(c);
+                i++;
+            }
+            else if((c > 191) && (c < 224)) {
+                c2 = utftext.charCodeAt(i+1);
+                string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+                i += 2;
+            }
+            else {
+                c2 = utftext.charCodeAt(i+1);
+                c3 = utftext.charCodeAt(i+2);
+                string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+                i += 3;
+            }
+        }
+        return string;
+    }
+}
+
+</script>
+</body>
+</html>
